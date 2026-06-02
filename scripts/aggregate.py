@@ -15,15 +15,21 @@ Two source modes:
 
 Run on the Synology schedule a few hours AFTER the finance pipeline so finance
 data is fresh. Then commit docs/data/summary.json.
+Two push modes:
+  (default)   write docs/data/summary.json locally only.
+  --push      also upload to GitHub via Contents API (no git binary needed).
+              Reads GITHUB_TOKEN from env or /volume1/docker/cisd-hub/.env.
 """
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import urlopen, Request
 
 # ---- source configuration -------------------------------------------------
@@ -260,9 +266,69 @@ def build_books(src: Source) -> dict:
     }
 
 
+GITHUB_OWNER = "ryantbyc"
+GITHUB_REPO  = "cisd-hub-public"
+GITHUB_PATH  = "docs/data/summary.json"
+NAS_ENV_FILE = "/volume1/docker/cisd-hub/.env"
+
+
+def load_token() -> str:
+    """Read GITHUB_TOKEN from environment or NAS .env file."""
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token and Path(NAS_ENV_FILE).exists():
+        for line in Path(NAS_ENV_FILE).read_text().splitlines():
+            line = line.strip()
+            if line.startswith("GITHUB_TOKEN="):
+                token = line.split("=", 1)[1].strip().strip('"').strip("'")
+    if not token:
+        raise RuntimeError(
+            f"GITHUB_TOKEN not found in environment or {NAS_ENV_FILE}"
+        )
+    return token
+
+
+def github_api(method: str, path: str, token: str, body: dict | None = None):
+    """Minimal GitHub REST API call using stdlib only."""
+    url = f"https://api.github.com{path}"
+    data = json.dumps(body).encode() if body else None
+    req = Request(url, data=data, method=method, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "cisd-hub-aggregator/1.0",
+        **({"Content-Type": "application/json"} if data else {}),
+    })
+    with urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read())
+
+
+def push_summary(content: str, token: str) -> None:
+    """Upload summary.json to GitHub via Contents API (no git binary needed)."""
+    api_path = f"/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_PATH}"
+    # Get current SHA so GitHub accepts the update.
+    try:
+        current = github_api("GET", api_path, token)
+        sha = current.get("sha")
+    except HTTPError as e:
+        if e.code == 404:
+            sha = None  # file doesn't exist yet — first push
+        else:
+            raise
+    body = {
+        "message": f"data: refresh hub summary ({NOW.strftime('%Y-%m-%dT%H:%MZ')})",
+        "content": base64.b64encode(content.encode()).decode(),
+        "branch": "main",
+    }
+    if sha:
+        body["sha"] = sha
+    github_api("PUT", api_path, token, body)
+    print("pushed summary.json to GitHub via API")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--local", help="base dir holding sibling repo clones (build/test mode)")
+    ap.add_argument("--push", action="store_true", help="upload to GitHub via Contents API after writing locally")
     ap.add_argument("--out", default=str(Path(__file__).resolve().parents[1] / "docs" / "data" / "summary.json"))
     args = ap.parse_args()
 
@@ -284,9 +350,15 @@ def main() -> int:
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+    content = json.dumps(summary, indent=2, ensure_ascii=False)
     with open(out, "w", encoding="utf-8") as fh:
-        json.dump(summary, fh, indent=2, ensure_ascii=False)
+        fh.write(content)
     print(f"wrote {out} ({len(summary['sites'])} sites, {len(summary['errors'])} errors)")
+
+    if args.push:
+        token = load_token()
+        push_summary(content, token)
+
     return 0
 
 
