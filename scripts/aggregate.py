@@ -37,7 +37,7 @@ from urllib.request import urlopen, Request
 # the hub takes that domain it moves to meetings.boardmonitor.app. Override with
 # CISD_MEETINGS_BASE while migration is pending.
 LIVE = {
-    "meetings": os.environ.get("CISD_MEETINGS_BASE", "https://meetings.boardmonitor.app"),
+    "meetings": os.environ.get("CISD_MEETINGS_BASE", "https://cisd-meetings.boardmonitor.app"),
     "finance":  "https://cisd-finance.boardmonitor.app",
     "policy":   "https://cisd-policy.boardmonitor.app",
     "books":    "https://cisd-books.boardmonitor.app",
@@ -140,13 +140,13 @@ def build_meetings(src: Source) -> dict:
             "type_display": m.get("type_display"),
             "item_count": m.get("item_count"),
             "highlights": bullets,
-            "url": f"https://meetings.boardmonitor.app/meeting.html?id={m['id']}",
+            "url": f"https://cisd-meetings.boardmonitor.app/meeting.html?id={m['id']}",
         }
 
     return {
         "next": detail(next_m, "next"),
         "last": detail(last_m, "last"),
-        "url": "https://meetings.boardmonitor.app",
+        "url": "https://cisd-meetings.boardmonitor.app",
     }
 
 
