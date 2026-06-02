@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-02T15:39:14.693642+00:00",
+  "generated_at": "2026-06-02T16:09:42.990571+00:00",
   "source_mode": "local",
   "sites": {
     "meetings": {
@@ -46,9 +46,10 @@
           "fmt": "usd_compact"
         },
         {
-          "label": "Transactions",
-          "value": 592338,
-          "fmt": "int"
+          "label": "Annual Budget",
+          "value": 761055862.0,
+          "fmt": "usd_compact",
+          "sub": "FY25-26"
         },
         {
           "label": "Watchdog Flags",
@@ -57,9 +58,10 @@
           "sub": "65 high severity"
         },
         {
-          "label": "Open Positions",
-          "value": 272,
-          "fmt": "int"
+          "label": "Staff Departures",
+          "value": 624,
+          "fmt": "int",
+          "sub": "FY25-26 · net -312"
         }
       ],
       "data_updated": "2026-05-29T22:01:41.655899+00:00",
@@ -100,8 +102,8 @@
           "sub": "all-time"
         },
         {
-          "label": "Removed (12 mo)",
-          "value": 1,
+          "label": "Titles Tracked",
+          "value": 475,
           "fmt": "int"
         },
         {
@@ -115,7 +117,7 @@
           "fmt": "int"
         }
       ],
-      "titles_tracked": 475,
+      "removed_12mo": 1,
       "pending": 0,
       "url": "https://cisd-books.boardmonitor.app"
     }

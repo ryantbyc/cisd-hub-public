@@ -144,14 +144,44 @@ def build_meetings(src: Source) -> dict:
     }
 
 
+def fy_label(fy: str) -> str:
+    """'2025-2026' or '2025-26' -> 'FY25-26'."""
+    parts = fy.replace("FY", "").split("-")
+    if len(parts) == 2:
+        return f"FY{parts[0][-2:]}-{parts[1][-2:]}"
+    return fy
+
+
 def build_finance(src: Source) -> dict:
     meta = src.get("finance", "data/meta.json")
+
+    # Annual budget — latest fiscal year.
+    budget_val, budget_fy = None, None
     try:
-        metrics = src.get("finance", "data/metrics.json")
-        jobs = next((r["value"] for r in metrics.get("records", [])
-                     if r.get("metric_key") == "jobs.open.total"), None)
+        bt = src.get("finance", "data/budget_totals.json")
+        if bt:
+            budget_fy = max(bt.keys())
+            budget_val = bt[budget_fy]
     except Exception:
-        jobs = None
+        pass
+
+    # Staff turnover — latest fiscal year's departures (rate unavailable upstream).
+    departures, turn_sub = None, None
+    try:
+        turn = src.get("finance", "data/turnover.json")
+        fys = turn.get("fiscal_years", [])
+        if fys:
+            latest = fys[-1]
+            row = turn.get("summary", {}).get(latest, {})
+            departures = row.get("departures")
+            net = row.get("net")
+            bits = [fy_label(latest)]
+            if net is not None:
+                bits.append(f"net {net:+d}")
+            turn_sub = " · ".join(bits)
+    except Exception:
+        pass
+
     try:
         wd = src.get("finance", "data/watchdog.json")
         flags_total = len(wd)
@@ -161,10 +191,11 @@ def build_finance(src: Source) -> dict:
 
     metrics_out = [
         {"label": "Total Spend Tracked", "value": meta.get("total_spend"), "fmt": "usd_compact"},
-        {"label": "Transactions", "value": meta.get("total_transactions"), "fmt": "int"},
+        {"label": "Annual Budget", "value": budget_val, "fmt": "usd_compact",
+         "sub": (fy_label(budget_fy) if budget_fy else None)},
         {"label": "Watchdog Flags", "value": flags_total, "fmt": "int",
          "sub": (f"{flags_high} high severity" if flags_high is not None else None)},
-        {"label": "Open Positions", "value": jobs, "fmt": "int"},
+        {"label": "Staff Departures", "value": departures, "fmt": "int", "sub": turn_sub},
     ]
     return {
         "metrics": metrics_out,
@@ -216,13 +247,13 @@ def build_books(src: Source) -> dict:
     metrics_out = [
         {"label": "Books Removed", "value": counts.get("removed"), "fmt": "int",
          "sub": "all-time"},
-        {"label": "Removed (12 mo)", "value": removed_12mo, "fmt": "int"},
+        {"label": "Titles Tracked", "value": data.get("total_books"), "fmt": "int"},
         {"label": "Reconsiderations", "value": reconsiderations, "fmt": "int"},
         {"label": "Retained", "value": counts.get("retained"), "fmt": "int"},
     ]
     return {
         "metrics": metrics_out,
-        "titles_tracked": data.get("total_books"),
+        "removed_12mo": removed_12mo,
         "pending": counts.get("pending", 0),
         "url": "https://cisd-books.boardmonitor.app",
     }

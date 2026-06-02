@@ -96,8 +96,10 @@
   function renderMeetings(node, m) {
     node.innerHTML = "";
     if (!m) { node.appendChild(el("p", "err", "Meeting data unavailable.")); return; }
-    node.appendChild(buildHighlightBox("Next meeting", m.next, true));
+    node.appendChild(buildHighlightBox("Next meeting", m.next, false));
     node.appendChild(buildHighlightBox("Last meeting", m.last, false));
+    var hint = el("p", "meetings__hint", "Select a meeting to expand its highlights.");
+    node.appendChild(hint);
   }
 
   function setLink(name, url) {
