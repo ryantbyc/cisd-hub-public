@@ -37,7 +37,7 @@ a { color:var(--brand); }
 .hero {
   background:
     linear-gradient(135deg, rgba(14,24,42,.84) 0%, rgba(31,58,95,.72) 100%),
-    url('images/boardroom.jpg') center 40% / cover no-repeat;
+    url('images/boardroom.jpg') center center / cover no-repeat;
   border-bottom: none;
   padding: var(--sp-8) 0 var(--sp-6);
 }
