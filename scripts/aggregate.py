@@ -1,0 +1,262 @@
+#!/usr/bin/env python3
+"""
+CISD Hub aggregator.
+
+Pulls the latest published data from each watchdog site and writes a single
+docs/data/summary.json that the hub SPA renders. Deterministic Python only —
+no LLM, no derived prose. Every number traces to a primary site's JSON.
+
+Two source modes:
+  --local <dir>   read sibling repo docs folders under <dir>
+                  (cisd-bmm-public, cisd-finance-public, cisd-policy-public,
+                   cisd-books-public). Used for local build/testing.
+  (default)       fetch the live published JSON over HTTPS. Used in production
+                  on the Synology task. GitHub Pages serves these with CORS *.
+
+Run on the Synology schedule a few hours AFTER the finance pipeline so finance
+data is fresh. Then commit docs/data/summary.json.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from urllib.request import urlopen, Request
+
+# ---- source configuration -------------------------------------------------
+# Live domains. NOTE: meetings currently lives at cisd.boardmonitor.app; after
+# the hub takes that domain it moves to meetings.boardmonitor.app. Override with
+# CISD_MEETINGS_BASE while migration is pending.
+LIVE = {
+    "meetings": os.environ.get("CISD_MEETINGS_BASE", "https://meetings.boardmonitor.app"),
+    "finance":  "https://cisd-finance.boardmonitor.app",
+    "policy":   "https://cisd-policy.boardmonitor.app",
+    "books":    "https://cisd-books.boardmonitor.app",
+}
+LOCAL_DIRS = {
+    "meetings": "cisd-bmm-public",
+    "finance":  "cisd-finance-public",
+    "policy":   "cisd-policy-public",
+    "books":    "cisd-books-public",
+}
+
+NOW = datetime.now(timezone.utc)
+ONE_YEAR_AGO = NOW - timedelta(days=365)
+
+
+class Source:
+    """Resolves a relative data path to either a local file or a live URL."""
+
+    def __init__(self, local_base: Path | None):
+        self.local_base = local_base
+
+    def get(self, site: str, rel: str):
+        if self.local_base is not None:
+            p = self.local_base / LOCAL_DIRS[site] / "docs" / rel
+            with open(p, "r", encoding="utf-8") as fh:
+                return json.load(fh)
+        url = f"{LIVE[site]}/{rel}"
+        req = Request(url, headers={"User-Agent": "cisd-hub-aggregator/1.0"})
+        with urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+
+# ---- helpers --------------------------------------------------------------
+def parse_date(s: str | None) -> datetime | None:
+    """Parse YYYY-MM-DD, YYYY-MM, or ISO timestamps. Returns tz-aware UTC."""
+    if not s:
+        return None
+    s = s.strip()
+    for fmt in ("%Y-%m-%d", "%Y-%m"):
+        try:
+            return datetime.strptime(s, fmt).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def md_section_bullets(md: str, heading: str, limit: int = 8) -> list[str]:
+    """Pull '- ' bullets that follow a '## <heading>' until the next divider."""
+    out: list[str] = []
+    if not md:
+        return out
+    lines = md.splitlines()
+    capture = False
+    for ln in lines:
+        st = ln.strip()
+        if st.startswith("## ") and heading.lower() in st.lower():
+            capture = True
+            continue
+        if capture:
+            if st.startswith("## ") or st.startswith("---") or st.startswith("> "):
+                if out:  # stop at the first divider after we've collected something
+                    break
+                continue
+            if st.startswith("- "):
+                out.append(st[2:].strip())
+                if len(out) >= limit:
+                    break
+    return out
+
+
+# ---- per-site builders ----------------------------------------------------
+def build_meetings(src: Source) -> dict:
+    idx = src.get("meetings", "data/index.json")
+    meetings = idx.get("meetings", [])
+    # newest-first in source, but sort defensively
+    meetings = sorted(meetings, key=lambda m: m.get("meeting_date", ""), reverse=True)
+    today = NOW.date().isoformat()
+
+    upcoming = [m for m in meetings if m.get("meeting_date", "") >= today and not m.get("has_notes")]
+    next_m = min(upcoming, key=lambda m: m["meeting_date"]) if upcoming else None
+    completed = [m for m in meetings if m.get("has_notes")]
+    last_m = completed[0] if completed else None
+
+    def detail(m, kind):
+        if not m:
+            return None
+        doc = src.get("meetings", f"data/{m['id']}.json")
+        if kind == "next":
+            raw = doc.get("highlights") or ""
+            bullets = [b[2:].strip() if b.strip().startswith("- ") else b.strip()
+                       for b in raw.split("\n") if b.strip()]
+        else:
+            bullets = md_section_bullets(doc.get("meeting_notes_md", ""), "Meeting Highlights")
+        return {
+            "id": m["id"],
+            "date_display": m.get("date_display"),
+            "type_display": m.get("type_display"),
+            "item_count": m.get("item_count"),
+            "highlights": bullets,
+            "url": f"https://meetings.boardmonitor.app/meeting.html?id={m['id']}",
+        }
+
+    return {
+        "next": detail(next_m, "next"),
+        "last": detail(last_m, "last"),
+        "url": "https://meetings.boardmonitor.app",
+    }
+
+
+def build_finance(src: Source) -> dict:
+    meta = src.get("finance", "data/meta.json")
+    try:
+        metrics = src.get("finance", "data/metrics.json")
+        jobs = next((r["value"] for r in metrics.get("records", [])
+                     if r.get("metric_key") == "jobs.open.total"), None)
+    except Exception:
+        jobs = None
+    try:
+        wd = src.get("finance", "data/watchdog.json")
+        flags_total = len(wd)
+        flags_high = sum(1 for f in wd if f.get("severity") == "high")
+    except Exception:
+        flags_total, flags_high = None, None
+
+    metrics_out = [
+        {"label": "Total Spend Tracked", "value": meta.get("total_spend"), "fmt": "usd_compact"},
+        {"label": "Transactions", "value": meta.get("total_transactions"), "fmt": "int"},
+        {"label": "Watchdog Flags", "value": flags_total, "fmt": "int",
+         "sub": (f"{flags_high} high severity" if flags_high is not None else None)},
+        {"label": "Open Positions", "value": jobs, "fmt": "int"},
+    ]
+    return {
+        "metrics": metrics_out,
+        "data_updated": meta.get("last_updated"),
+        "url": "https://cisd-finance.boardmonitor.app",
+    }
+
+
+def build_policy(src: Source) -> dict:
+    idx = src.get("policy", "data/index.json")
+    policies = idx.get("policies", [])
+    tracked = sum(1 for p in policies if p.get("timeline_count"))
+    adopted_12mo, latest_date, latest_code = 0, None, None
+    total_revisions = 0
+    for p in policies:
+        total_revisions += int(p.get("timeline_count") or 0)
+        d = parse_date(p.get("last_action_date"))
+        if d:
+            if d >= ONE_YEAR_AGO and (p.get("last_action_result") or "").lower() == "adopted":
+                adopted_12mo += 1
+            if latest_date is None or d > latest_date:
+                latest_date, latest_code = d, p.get("code")
+
+    metrics_out = [
+        {"label": "Policies Tracked", "value": tracked, "fmt": "int"},
+        {"label": "Adopted (12 mo)", "value": adopted_12mo, "fmt": "int"},
+        {"label": "Revisions Logged", "value": total_revisions, "fmt": "int"},
+        {"label": "Latest Change", "value": latest_code, "fmt": "text",
+         "sub": (latest_date.strftime("%b %Y") if latest_date else None)},
+    ]
+    return {"metrics": metrics_out, "url": "https://cisd-policy.boardmonitor.app"}
+
+
+def build_books(src: Source) -> dict:
+    data = src.get("books", "data/books.json")
+    counts = data.get("action_counts", {})
+    removed_12mo = 0
+    reconsiderations = 0
+    for b in data.get("books", []):
+        for a in b.get("actions", []):
+            d = parse_date(a.get("date"))
+            outcome = (a.get("outcome") or "").lower()
+            if outcome == "removed" and d and d >= ONE_YEAR_AGO:
+                removed_12mo += 1
+            blob = " ".join(str(a.get(k) or "") for k in ("type", "process", "reason_label")).lower()
+            if "reconsideration" in blob:
+                reconsiderations += 1
+
+    metrics_out = [
+        {"label": "Books Removed", "value": counts.get("removed"), "fmt": "int",
+         "sub": "all-time"},
+        {"label": "Removed (12 mo)", "value": removed_12mo, "fmt": "int"},
+        {"label": "Reconsiderations", "value": reconsiderations, "fmt": "int"},
+        {"label": "Retained", "value": counts.get("retained"), "fmt": "int"},
+    ]
+    return {
+        "metrics": metrics_out,
+        "titles_tracked": data.get("total_books"),
+        "pending": counts.get("pending", 0),
+        "url": "https://cisd-books.boardmonitor.app",
+    }
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--local", help="base dir holding sibling repo clones (build/test mode)")
+    ap.add_argument("--out", default=str(Path(__file__).resolve().parents[1] / "docs" / "data" / "summary.json"))
+    args = ap.parse_args()
+
+    src = Source(Path(args.local) if args.local else None)
+
+    summary = {
+        "generated_at": NOW.isoformat(),
+        "source_mode": "local" if args.local else "live",
+        "sites": {},
+        "errors": {},
+    }
+    for name, fn in (("meetings", build_meetings), ("finance", build_finance),
+                     ("policy", build_policy), ("books", build_books)):
+        try:
+            summary["sites"][name] = fn(src)
+        except Exception as e:  # one site down must not blank the whole hub
+            summary["errors"][name] = f"{type(e).__name__}: {e}"
+            print(f"[warn] {name}: {e}", file=sys.stderr)
+
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "w", encoding="utf-8") as fh:
+        json.dump(summary, fh, indent=2, ensure_ascii=False)
+    print(f"wrote {out} ({len(summary['sites'])} sites, {len(summary['errors'])} errors)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

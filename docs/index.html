@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CISD Watchdog — Conroe ISD Accountability Hub</title>
+  <meta name="description" content="A public launchpad for Conroe ISD board meetings, finances, policy changes, and library book decisions — the latest from each, in one place." />
+  <meta name="color-scheme" content="light" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#sites">Skip to content</a>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Conroe ISD · Independent Watchdog</p>
+      <h1>Everything the district does,<br />in one place.</h1>
+      <p class="lede">
+        Independent, source-backed tracking of Conroe ISD — board meetings, spending,
+        policy changes, and library decisions. Every figure traces to a primary record.
+      </p>
+    </div>
+  </header>
+
+  <main id="sites" class="wrap">
+    <!-- Meetings: feature card with two expandable highlight boxes -->
+    <section class="card card--feature" data-accent="meetings" aria-labelledby="h-meetings">
+      <div class="card__head">
+        <span class="card__icon" aria-hidden="true">🏛️</span>
+        <h2 id="h-meetings">Board Meetings</h2>
+        <a class="card__open" data-link="meetings" href="#" target="_blank" rel="noopener">Open ↗</a>
+      </div>
+      <div class="meetings" id="meetings-body">
+        <p class="loading">Loading latest meetings…</p>
+      </div>
+    </section>
+
+    <div class="grid-3">
+      <!-- Finance -->
+      <section class="card" data-accent="finance" aria-labelledby="h-finance">
+        <div class="card__head">
+          <span class="card__icon" aria-hidden="true">💰</span>
+          <h2 id="h-finance">Finance</h2>
+          <a class="card__open" data-link="finance" href="#" target="_blank" rel="noopener">Open ↗</a>
+        </div>
+        <div class="metrics" id="finance-metrics"><p class="loading">Loading…</p></div>
+      </section>
+
+      <!-- Policy -->
+      <section class="card" data-accent="policy" aria-labelledby="h-policy">
+        <div class="card__head">
+          <span class="card__icon" aria-hidden="true">📜</span>
+          <h2 id="h-policy">Policy Tracker</h2>
+          <a class="card__open" data-link="policy" href="#" target="_blank" rel="noopener">Open ↗</a>
+        </div>
+        <div class="metrics" id="policy-metrics"><p class="loading">Loading…</p></div>
+      </section>
+
+      <!-- Books -->
+      <section class="card" data-accent="books" aria-labelledby="h-books">
+        <div class="card__head">
+          <span class="card__icon" aria-hidden="true">📚</span>
+          <h2 id="h-books">Library Books</h2>
+          <a class="card__open" data-link="books" href="#" target="_blank" rel="noopener">Open ↗</a>
+        </div>
+        <div class="metrics" id="books-metrics"><p class="loading">Loading…</p></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p class="foot__note" id="foot-note">An independent project — not affiliated with Conroe ISD.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
