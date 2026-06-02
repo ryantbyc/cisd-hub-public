@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-02T16:09:42.990571+00:00",
+  "generated_at": "2026-06-02T16:14:18.822519+00:00",
   "source_mode": "local",
   "sites": {
     "meetings": {
@@ -61,7 +61,7 @@
           "label": "Staff Departures",
           "value": 624,
           "fmt": "int",
-          "sub": "FY25-26 · net -312"
+          "sub": "FY25-26 YTD · net -312"
         }
       ],
       "data_updated": "2026-05-29T22:01:41.655899+00:00",

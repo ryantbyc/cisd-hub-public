@@ -175,7 +175,8 @@ def build_finance(src: Source) -> dict:
             row = turn.get("summary", {}).get(latest, {})
             departures = row.get("departures")
             net = row.get("net")
-            bits = [fy_label(latest)]
+            # latest FY is the in-progress year → year-to-date
+            bits = [f"{fy_label(latest)} YTD"]
             if net is not None:
                 bits.append(f"net {net:+d}")
             turn_sub = " · ".join(bits)
