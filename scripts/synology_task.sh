@@ -10,7 +10,7 @@
 # Manual test run (as root over SSH):
 #   bash /volume1/docker/cisd-hub/scripts/synology_task.sh
 
-REPO_DIR="/volume1/docker/cisd-hub/repo"
+REPO_DIR="/volume1/document/CISD-Hub-Public"
 LOG_DIR="/volume1/docker/cisd-hub/logs"
 LOG_FILE="$LOG_DIR/hub_$(date +%Y%m%d_%H%M%S).log"
 

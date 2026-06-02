@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-02T16:14:18.822519+00:00",
+  "generated_at": "2026-06-02T20:20:00.600441+00:00",
   "source_mode": "local",
   "sites": {
     "meetings": {
@@ -41,7 +41,7 @@
     "finance": {
       "metrics": [
         {
-          "label": "Total Spend Tracked",
+          "label": "Spend Tracked (6 yr)",
           "value": 2249826750.84,
           "fmt": "usd_compact"
         },
@@ -70,13 +70,13 @@
     "policy": {
       "metrics": [
         {
-          "label": "Policies Tracked",
-          "value": 44,
+          "label": "Policy Changes (12 mo)",
+          "value": 37,
           "fmt": "int"
         },
         {
-          "label": "Adopted (12 mo)",
-          "value": 37,
+          "label": "Policies Tracked",
+          "value": 44,
           "fmt": "int"
         },
         {

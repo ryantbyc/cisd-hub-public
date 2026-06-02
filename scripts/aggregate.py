@@ -191,7 +191,7 @@ def build_finance(src: Source) -> dict:
         flags_total, flags_high = None, None
 
     metrics_out = [
-        {"label": "Total Spend Tracked", "value": meta.get("total_spend"), "fmt": "usd_compact"},
+        {"label": "Spend Tracked (6 yr)", "value": meta.get("total_spend"), "fmt": "usd_compact"},
         {"label": "Annual Budget", "value": budget_val, "fmt": "usd_compact",
          "sub": (fy_label(budget_fy) if budget_fy else None)},
         {"label": "Watchdog Flags", "value": flags_total, "fmt": "int",
@@ -221,8 +221,8 @@ def build_policy(src: Source) -> dict:
                 latest_date, latest_code = d, p.get("code")
 
     metrics_out = [
+        {"label": "Policy Changes (12 mo)", "value": adopted_12mo, "fmt": "int"},
         {"label": "Policies Tracked", "value": tracked, "fmt": "int"},
-        {"label": "Adopted (12 mo)", "value": adopted_12mo, "fmt": "int"},
         {"label": "Revisions Logged", "value": total_revisions, "fmt": "int"},
         {"label": "Latest Change", "value": latest_code, "fmt": "text",
          "sub": (latest_date.strftime("%b %Y") if latest_date else None)},
