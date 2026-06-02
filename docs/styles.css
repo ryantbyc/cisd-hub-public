@@ -36,20 +36,20 @@ a { color:var(--brand); }
 /* Hero */
 .hero {
   background:
-    radial-gradient(1200px 400px at 80% -10%, rgba(59,91,140,.10), transparent 60%),
-    linear-gradient(180deg, #fff, var(--bg));
-  border-bottom:1px solid var(--line);
-  padding:var(--sp-8) 0 var(--sp-5);
+    linear-gradient(135deg, rgba(14,24,42,.84) 0%, rgba(31,58,95,.72) 100%),
+    url('images/boardroom.jpg') center 40% / cover no-repeat;
+  border-bottom: none;
+  padding: var(--sp-8) 0 var(--sp-6);
 }
 .eyebrow {
   margin:0 0 var(--sp-3); font-size:12px; font-weight:600; letter-spacing:.08em;
-  text-transform:uppercase; color:var(--c-meetings);
+  text-transform:uppercase; color:rgba(180,208,255,.9);
 }
 .hero h1 {
   margin:0 0 var(--sp-4); font-size:clamp(26px,4.5vw,40px); line-height:1.1;
-  font-weight:700; letter-spacing:-.01em; color:var(--ink);
+  font-weight:700; letter-spacing:-.01em; color:#fff;
 }
-.lede { margin:0; max-width:60ch; color:var(--ink-2); font-size:clamp(15px,2vw,17px); }
+.lede { margin:0; max-width:60ch; color:rgba(255,255,255,.80); font-size:clamp(15px,2vw,17px); }
 
 /* Layout */
 main { padding:var(--sp-4) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
