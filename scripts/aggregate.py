@@ -156,7 +156,7 @@ def build_meetings(src: Source) -> dict:
                 date_str = f"{d.strftime('%B')} {d.day}, {d.year}"
                 extras = [p for p in [ns.get("time", ""), ns.get("location", "")] if p]
                 if extras:
-                    date_str += " · " + " · ".join(extras)
+                    date_str += " - " + ", ".join(extras)
                 t = ns.get("type", "regular")
                 next_detail = {
                     "id": None,
