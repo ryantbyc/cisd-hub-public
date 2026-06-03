@@ -1,9 +1,17 @@
 {
-  "generated_at": "2026-06-03T01:00:02.085252+00:00",
-  "source_mode": "live",
+  "generated_at": "2026-06-03T12:11:40.626954+00:00",
+  "source_mode": "local",
   "sites": {
     "meetings": {
-      "next": null,
+      "next": {
+        "id": null,
+        "date_display": "June 16, 2026 - 5:00 p.m., Jett Center",
+        "type_display": "Regular Meeting",
+        "item_count": null,
+        "highlights": [],
+        "url": null,
+        "scheduled_only": true
+      },
       "last": {
         "id": "2026-05-12_regular",
         "date_display": "May 12, 2026",
