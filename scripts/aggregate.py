@@ -143,8 +143,35 @@ def build_meetings(src: Source) -> dict:
             "url": f"https://cisd-meetings.boardmonitor.app/meeting.html?id={m['id']}",
         }
 
+    next_detail = detail(next_m, "next")
+
+    # If no agenda-bearing next meeting exists, fall back to scheduled.json for a stub.
+    if next_detail is None:
+        try:
+            sched = src.get("meetings", "data/scheduled.json")
+            future = [s for s in sched.get("meetings", []) if s.get("date", "") > today]
+            if future:
+                ns = min(future, key=lambda s: s["date"])
+                d = datetime.strptime(ns["date"], "%Y-%m-%d")
+                date_str = f"{d.strftime('%B')} {d.day}, {d.year}"
+                extras = [p for p in [ns.get("time", ""), ns.get("location", "")] if p]
+                if extras:
+                    date_str += " · " + " · ".join(extras)
+                t = ns.get("type", "regular")
+                next_detail = {
+                    "id": None,
+                    "date_display": date_str,
+                    "type_display": "Regular Meeting" if t == "regular" else "Special Meeting",
+                    "item_count": None,
+                    "highlights": [],
+                    "url": None,
+                    "scheduled_only": True,
+                }
+        except Exception:
+            pass
+
     return {
-        "next": detail(next_m, "next"),
+        "next": next_detail,
         "last": detail(last_m, "last"),
         "url": "https://cisd-meetings.boardmonitor.app",
     }

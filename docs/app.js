@@ -86,7 +86,7 @@
     body.id = bodyId;
     var ul = el("ul");
     (mtg.highlights || []).forEach(function (h) { ul.appendChild(el("li", null, mdInline(h))); });
-    if (!(mtg.highlights || []).length) ul.appendChild(el("li", null, "Highlights not yet available."));
+    if (!(mtg.highlights || []).length) ul.appendChild(el("li", null, mtg.scheduled_only ? "Agenda not yet published — check back closer to the meeting date." : "Highlights not yet available."));
     body.appendChild(ul);
     if (mtg.url) {
       var link = el("a", null, "View full breakdown ↗");
