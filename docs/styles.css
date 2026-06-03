@@ -52,7 +52,7 @@ a { color:var(--brand); }
 .lede { margin:0; max-width:60ch; color:rgba(255,255,255,.80); font-size:clamp(15px,2vw,17px); }
 
 /* Layout */
-main { padding:var(--sp-8) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
+main { padding:var(--sp-8) 0 var(--sp-6); margin-top:var(--sp-5); display:grid; gap:var(--sp-5); }
 .grid-3 { display:grid; gap:var(--sp-5); grid-template-columns:repeat(3,1fr); }
 @media (max-width:820px){ .grid-3 { grid-template-columns:1fr; } }
 
@@ -72,7 +72,7 @@ main { padding:var(--sp-8) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
 .card[data-accent="policy"]  { --accent:var(--c-policy); }
 .card[data-accent="books"]   { --accent:var(--c-books); }
 
-.card__head { display:flex; align-items:center; gap:var(--sp-3); margin-bottom:var(--sp-4); }
+.card__head { display:flex; align-items:center; gap:var(--sp-3); margin-bottom:var(--sp-5); }
 .card__icon { font-size:18px; line-height:1; }
 .card__head h2 { margin:0; font-size:18px; font-weight:600; letter-spacing:-.01em; flex:1; }
 .card__open {
