@@ -24,7 +24,8 @@ body {
   -webkit-font-smoothing:antialiased;
   overflow-wrap:break-word;
 }
-.wrap { max-width:1080px; margin:0 auto; padding:0 var(--sp-5); }
+/* padding shorthand on .wrap only sets horizontal — vertical is handled per-element */
+.wrap { max-width:1080px; margin:0 auto; padding-left:var(--sp-5); padding-right:var(--sp-5); }
 a { color:var(--brand); }
 
 .skip-link {
@@ -52,7 +53,7 @@ a { color:var(--brand); }
 .lede { margin:0; max-width:60ch; color:rgba(255,255,255,.80); font-size:clamp(15px,2vw,17px); }
 
 /* Layout */
-main { padding:var(--sp-8) 0 var(--sp-6); margin-top:var(--sp-5); display:grid; gap:var(--sp-5); }
+main { padding:var(--sp-8) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
 .grid-3 { display:grid; gap:var(--sp-5); grid-template-columns:repeat(3,1fr); }
 @media (max-width:820px){ .grid-3 { grid-template-columns:1fr; } }
 
