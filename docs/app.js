@@ -152,8 +152,18 @@
   function renderMeetings(node, m) {
     node.innerHTML = "";
     if (!m) { node.appendChild(el("p", "err", "Meeting data unavailable.")); return; }
-    node.appendChild(buildHighlightBox("Next meeting", m.next, false));
-    node.appendChild(buildHighlightBox("Last meeting", m.last, false));
+    var hasNext = !!m.next;
+    if (hasNext) {
+      node.appendChild(buildHighlightBox("Next meeting", m.next, false));
+      node.appendChild(buildHighlightBox("Last meeting", m.last, false));
+    } else {
+      // No upcoming meeting — show last meeting full-width with a no-upcoming note
+      var single = buildHighlightBox("Last meeting", m.last, false);
+      single.style.gridColumn = "1 / -1";
+      node.appendChild(single);
+      var noNext = el("p", "meetings__hint meetings__hint--nonext", "No upcoming meeting currently scheduled. Check back closer to the next board meeting date.");
+      node.appendChild(noNext);
+    }
     var hint = el("p", "meetings__hint", "Select a meeting to expand its highlights.");
     node.appendChild(hint);
     node.appendChild(buildAlertSignup());
