@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-03T12:11:40.626954+00:00",
-  "source_mode": "local",
+  "generated_at": "2026-06-03T18:34:53.126600+00:00",
+  "source_mode": "live",
   "sites": {
     "meetings": {
       "next": {
@@ -13,21 +13,20 @@
         "scheduled_only": true
       },
       "last": {
-        "id": "2026-05-12_regular",
-        "date_display": "May 12, 2026",
-        "type_display": "Regular Meeting",
-        "item_count": 27,
+        "id": "2026-06-02_special",
+        "date_display": "June 2, 2026",
+        "type_display": "Special Meeting",
+        "item_count": 9,
         "highlights": [
-          "The board authorized the superintendent to settle a dispute with SI Environmental LLC for up to $161,000, approved 6-1.",
-          "The Board Operating Procedures Manual was adopted 4-3, over objections from Trustee Horton and two others regarding provisions expanding board president authority.",
-          "The board approved updates to Board Policies DBD, FEA, FEC, and GC.",
-          "The board voted 7-0 to make no change to the placement of *The Action Bible: Heroes and Villains*, keeping the book in district libraries.",
-          "The board approved the 2025 library materials acquisition list 7-0, following a 30-day public review period.",
-          "Five Bond 2023 construction bid awards were approved 7-0, covering HVAC, roofing, and safety upgrades at multiple campuses, plus gym additions at Anderson and Glen Loch Elementaries ($22,000,000) and David and Galatas Elementaries ($13,389,623).",
-          "The board approved a $28,646,253 GMP for major renovations at San Jacinto Elementary and additions at Ross Elementary, 7-0.",
-          "A $25,000,000 bid for HVAC replacements at Caney Creek High School and security upgrades at 13 other campuses was awarded to Ellesore Constructors, approved 6-1."
+          "The board approved the full consent agenda 7–0, including authorization to apply for the TEA's 2026–2027 RLA Blended Learning Pilot Grant and approval of routine professional personnel employment.",
+          "Five new elementary and campus principals were named: Tanya Smith (Birnham Woods Elementary), Amy Barber (Gordon-Reed Elementary), Angela Akin-Fonville (Giesinger Elementary), Lara Vasquez (San Jacinto Elementary), and Dr. Barbara Solberg (Oak Ridge 9th Grade Campus).",
+          "The board received a discussion item on student safety policy direction; no vote was taken, but trustees indicated a slate of safety-related policies will be brought for a vote at the June 16th meeting.",
+          "General counsel noted the June 16th policy slate will include provisions required by Senate Bill 571, which mandates affidavits and sexual predator registry checks for employees and vendors and prohibits hiring individuals with records of inappropriate conduct.",
+          "The superintendent announced the district will consolidate all communication platforms into a single system (ParentSquare) to improve safety, security, and traceability of staff-to-family communications.",
+          "The board recognized UIL 6A state champions Camden Gibson (College Park High School, 1600-meter run) and Aiona Chowry (Woodlands High School, girls tennis singles).",
+          "The board held two closed sessions covering principal candidates, board governance training, and legal matters; no action was taken in either session."
         ],
-        "url": "https://cisd-meetings.boardmonitor.app/meeting.html?id=2026-05-12_regular"
+        "url": "https://cisd-meetings.boardmonitor.app/meeting.html?id=2026-06-02_special"
       },
       "url": "https://cisd-meetings.boardmonitor.app"
     },
