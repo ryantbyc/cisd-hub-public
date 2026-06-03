@@ -1,24 +1,9 @@
 {
-  "generated_at": "2026-06-02T23:09:30.162961+00:00",
-  "source_mode": "local",
+  "generated_at": "2026-06-03T01:00:02.085252+00:00",
+  "source_mode": "live",
   "sites": {
     "meetings": {
-      "next": {
-        "id": "2026-06-02_special",
-        "date_display": "June 2, 2026",
-        "type_display": "Special Meeting",
-        "item_count": 9,
-        "highlights": [
-          "Board members will meet in closed session to discuss candidates for principal positions at one or more CISD campuses, with any hiring decisions to be made in open session.",
-          "The Board will receive a legal update from district attorneys regarding pending or contemplated litigation in closed session.",
-          "The Board will take public action following closed session to give the Superintendent direction on a student safety matter, though no details about the specific issue have been disclosed in the agenda.",
-          "The Board will formally recognize a College Park High School athlete who won the UIL Class 6A Boys 1600-meter state title and a Woodlands High School athlete who won the UIL Class 6A Girls Tennis Singles state championship.",
-          "The Board will consider approving an application for TEA's 2026–2027 Reading/Language Arts (RLA) Blended Pilot Grant, which would fund a blended learning approach to literacy instruction.",
-          "Campus principals will be recognized by the Board, likely in connection with the end of the school year or leadership transitions.",
-          "Board members and the Superintendent will participate in Team of Eight governance training as part of ongoing leadership development."
-        ],
-        "url": "https://cisd-meetings.boardmonitor.app/meeting.html?id=2026-06-02_special"
-      },
+      "next": null,
       "last": {
         "id": "2026-05-12_regular",
         "date_display": "May 12, 2026",
@@ -64,14 +49,14 @@
           "sub": "FY25-26 YTD · net -312"
         }
       ],
-      "data_updated": "2026-05-29T22:01:41.655899+00:00",
+      "data_updated": "2026-06-02T22:01:51.169229+00:00",
       "url": "https://cisd-finance.boardmonitor.app"
     },
     "policy": {
       "metrics": [
         {
           "label": "Policy Changes (12 mo)",
-          "value": 37,
+          "value": 40,
           "fmt": "int"
         },
         {
@@ -81,14 +66,14 @@
         },
         {
           "label": "Revisions Logged",
-          "value": 82,
+          "value": 86,
           "fmt": "int"
         },
         {
           "label": "Latest Change",
           "value": "DBD",
           "fmt": "text",
-          "sub": "Apr 2026"
+          "sub": "May 2026"
         }
       ],
       "url": "https://cisd-policy.boardmonitor.app"
