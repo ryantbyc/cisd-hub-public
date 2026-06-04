@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-03T18:34:53.126600+00:00",
+  "generated_at": "2026-06-04T01:00:02.324857+00:00",
   "source_mode": "live",
   "sites": {
     "meetings": {
@@ -95,7 +95,7 @@
         },
         {
           "label": "Titles Tracked",
-          "value": 475,
+          "value": 479,
           "fmt": "int"
         },
         {
@@ -105,12 +105,12 @@
         },
         {
           "label": "Retained",
-          "value": 41,
+          "value": 40,
           "fmt": "int"
         }
       ],
       "removed_12mo": 1,
-      "pending": 0,
+      "pending": 1,
       "url": "https://cisd-books.boardmonitor.app"
     }
   },
