@@ -41,15 +41,12 @@ Runs on the Synology Task Scheduler a few hours **after** the finance pipeline
 | Layer | What |
 |---|---|
 | **Frontend** | Vanilla HTML + CSS + JavaScript — no framework, no build step |
-| **Hosting** | GitHub Pages (`docs/` folder → `cisd.boardmonitor.app`) |
-| **Data** | `docs/data/summary.json` — fetched at runtime by `app.js` via `fetch()` |
-| **Aggregator** | Python 3 stdlib only (`scripts/aggregate.py`) — pulls JSON from each sibling site, writes `summary.json` |
-| **Scheduler** | Synology NAS Task Scheduler — runs the aggregator every few hours after the finance pipeline |
-| **Push mechanism** | GitHub Contents API (no git binary on NAS) — `aggregate.py --push` uploads `summary.json` directly |
-| **Alerts API** | `https://api.boardmonitor.app` — external endpoint for email alert sign-ups (meetings card) |
-| **CSS** | Hand-rolled design tokens (no CSS framework), system font stack |
+| **Hosting** | GitHub Pages → `cisd.boardmonitor.app` |
+| **Aggregator** | Python 3 (stdlib only) — pulls JSON from each sibling site on a schedule |
+| **Scheduler** | Synology NAS Task Scheduler |
+| **Alerts** | External API endpoint for email sign-ups |
 
-No npm, no bundler, no server-side rendering. The entire site is static files; the only "backend" is the Python aggregator running on a schedule.
+No npm, no bundler, no server-side rendering. Entirely static files; the only "backend" is the Python aggregator running on a schedule.
 
 ## Design
 
