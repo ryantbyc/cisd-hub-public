@@ -169,6 +169,45 @@
     node.appendChild(buildAlertSignup());
   }
 
+  function renderPerformance(node, p) {
+    node.innerHTML = "";
+    if (!p || !p.grade) { node.appendChild(el("p", "err", "Performance data unavailable.")); return; }
+
+    var grid = el("div", "perf-grid");
+
+    // Grade tile — spans as first cell, styled distinctly
+    var gradeTile = el("div", "perf-tile perf-tile--grade");
+    gradeTile.appendChild(el("div", "perf-grade grade-ltr--" + esc(p.grade), esc(p.grade)));
+    gradeTile.appendChild(el("div", "perf-tile__label", "TEA Grade"));
+    gradeTile.appendChild(el("div", "perf-tile__sub", esc(p.school_year) + " · Overall Accountability Rating"));
+    grid.appendChild(gradeTile);
+
+    // Metric tiles
+    (p.metrics || []).forEach(function (m) {
+      var tile = el("div", "perf-tile");
+      var val = m.value != null ? (Math.round(m.value * 10) / 10) + "%" : "—";
+      tile.appendChild(el("div", "perf-tile__val", esc(val)));
+      tile.appendChild(el("div", "perf-tile__label", esc(m.label)));
+      if (m.sub) tile.appendChild(el("div", "perf-tile__sub", esc(m.sub)));
+
+      if (m.trend != null) {
+        var lib     = !!m.lower_is_better;
+        var better  = lib ? m.trend < 0 : m.trend > 0;
+        var worse   = lib ? m.trend > 0 : m.trend < 0;
+        var arrow   = m.trend > 0 ? "↑" : m.trend < 0 ? "↓" : "→";
+        var cls     = "perf-tile__trend " + (better ? "perf-tile__trend--up" : worse ? "perf-tile__trend--down" : "perf-tile__trend--neutral");
+        var trendTxt = (m.trend > 0 ? "+" : "") + m.trend.toFixed(1) + " pp " + arrow;
+        tile.appendChild(el("span", cls, esc(trendTxt)));
+      }
+      grid.appendChild(tile);
+    });
+
+    node.appendChild(grid);
+    var hint = el("p", "meetings__hint", "Source: TEA TAPR · " + esc(p.school_year) + " school year");
+    hint.style.marginTop = "var(--sp-3)";
+    node.appendChild(hint);
+  }
+
   function setLink(name, url) {
     if (!url) return;
     var a = document.querySelector('[data-link="' + name + '"]');
@@ -189,10 +228,11 @@
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function (data) {
       var s = data.sites || {};
-      if (s.meetings) { renderMeetings(document.getElementById("meetings-body"), s.meetings); setLink("meetings", s.meetings.url); }
-      if (s.finance) { renderMetrics(document.getElementById("finance-metrics"), s.finance.metrics, s.finance.url); setLink("finance", s.finance.url); }
-      if (s.policy) { renderMetrics(document.getElementById("policy-metrics"), s.policy.metrics, s.policy.url); setLink("policy", s.policy.url); }
-      if (s.books) { renderMetrics(document.getElementById("books-metrics"), s.books.metrics, s.books.url); setLink("books", s.books.url); }
+      if (s.meetings)    { renderMeetings(document.getElementById("meetings-body"), s.meetings); setLink("meetings", s.meetings.url); }
+      if (s.performance) { renderPerformance(document.getElementById("performance-body"), s.performance); setLink("performance", s.performance.url); }
+      if (s.finance)     { renderMetrics(document.getElementById("finance-metrics"), s.finance.metrics, s.finance.url); setLink("finance", s.finance.url); }
+      if (s.policy)      { renderMetrics(document.getElementById("policy-metrics"), s.policy.metrics, s.policy.url); setLink("policy", s.policy.url); }
+      if (s.books)       { renderMetrics(document.getElementById("books-metrics"), s.books.metrics, s.books.url); setLink("books", s.books.url); }
 
       var stamp = fmtStamp(data.generated_at);
       if (stamp) {
@@ -201,7 +241,7 @@
       }
     })
     .catch(function (e) {
-      ["meetings-body", "finance-metrics", "policy-metrics", "books-metrics"].forEach(function (id) {
+      ["meetings-body", "performance-body", "finance-metrics", "policy-metrics", "books-metrics"].forEach(function (id) {
         var n = document.getElementById(id);
         if (n) n.innerHTML = '<p class="err">Could not load data (' + esc(e.message) + ').</p>';
       });

@@ -37,16 +37,18 @@ from urllib.request import urlopen, Request
 # the hub takes that domain it moves to meetings.boardmonitor.app. Override with
 # CISD_MEETINGS_BASE while migration is pending.
 LIVE = {
-    "meetings": os.environ.get("CISD_MEETINGS_BASE", "https://cisd-meetings.boardmonitor.app"),
-    "finance":  "https://cisd-finance.boardmonitor.app",
-    "policy":   "https://cisd-policy.boardmonitor.app",
-    "books":    "https://cisd-books.boardmonitor.app",
+    "meetings":    os.environ.get("CISD_MEETINGS_BASE", "https://cisd-meetings.boardmonitor.app"),
+    "finance":     "https://cisd-finance.boardmonitor.app",
+    "policy":      "https://cisd-policy.boardmonitor.app",
+    "books":       "https://cisd-books.boardmonitor.app",
+    "performance": "https://cisd-performance.boardmonitor.app",
 }
 LOCAL_DIRS = {
-    "meetings": "cisd-bmm-public",
-    "finance":  "cisd-finance-public",
-    "policy":   "cisd-policy-public",
-    "books":    "cisd-books-public",
+    "meetings":    "cisd-bmm-public",
+    "finance":     "cisd-finance-public",
+    "policy":      "cisd-policy-public",
+    "books":       "cisd-books-public",
+    "performance": "cisd-performance-public",
 }
 
 NOW = datetime.now(timezone.utc)
@@ -293,6 +295,75 @@ def build_books(src: Source) -> dict:
     }
 
 
+def build_performance(src: Source) -> dict:
+    """Extract headline district metrics from the performance site's outcomes.json."""
+    data = src.get("performance", "data/outcomes.json")
+    tm = data.get("tea_metrics", {}).get("district", {})
+
+    # Find years that have accountability data, sorted newest-first
+    years_with_data = sorted(
+        [(yr, yd) for yr, yd in tm.items() if yd.get("accountability")],
+        key=lambda x: x[0], reverse=True,
+    )
+    if not years_with_data:
+        return {"grade": None, "metrics": [], "url": "https://cisd-performance.boardmonitor.app"}
+
+    curr_yr, curr = years_with_data[0]
+    prev_yr, prev = years_with_data[1] if len(years_with_data) > 1 else (None, {})
+
+    def find(metrics_list: list, prefix: str) -> float | None:
+        for m in metrics_list:
+            if m.get("title", "").startswith(prefix):
+                return m.get("all")
+        return None
+
+    def delta(curr_val, prev_val) -> float | None:
+        if curr_val is None or prev_val is None:
+            return None
+        return round(curr_val - prev_val, 1)
+
+    c_ap = curr.get("academic_performance", [])
+    c_gp = curr.get("graduation_postsec", [])
+    p_ap = prev.get("academic_performance", []) if prev else []
+    p_gp = prev.get("graduation_postsec", []) if prev else []
+
+    metrics = [
+        {
+            "label": "STAAR Reading", "sub": "Meets Grade Level+", "fmt": "pct",
+            "value": find(c_ap, "STAAR Reading"),
+            "trend": delta(find(c_ap, "STAAR Reading"), find(p_ap, "STAAR Reading")),
+        },
+        {
+            "label": "STAAR Math", "sub": "Meets Grade Level+", "fmt": "pct",
+            "value": find(c_ap, "STAAR Math"),
+            "trend": delta(find(c_ap, "STAAR Math"), find(p_ap, "STAAR Math")),
+        },
+        {
+            "label": "Graduation Rate", "sub": "4-Year", "fmt": "pct",
+            "value": find(c_gp, "4-Year Graduation"),
+            "trend": delta(find(c_gp, "4-Year Graduation"), find(p_gp, "4-Year Graduation")),
+        },
+        {
+            "label": "CCMR", "sub": "College, Career & Military Ready", "fmt": "pct",
+            "value": find(c_gp, "College, Career"),
+            "trend": delta(find(c_gp, "College, Career"), find(p_gp, "College, Career")),
+        },
+        {
+            "label": "Dropout Rate", "sub": "Grades 9–12", "fmt": "pct",
+            "lower_is_better": True,
+            "value": find(c_gp, "Annual Dropout"),
+            "trend": delta(find(c_gp, "Annual Dropout"), find(p_gp, "Annual Dropout")),
+        },
+    ]
+
+    return {
+        "school_year": curr_yr,
+        "grade": curr.get("accountability", {}).get("grade"),
+        "metrics": metrics,
+        "url": "https://cisd-performance.boardmonitor.app",
+    }
+
+
 GITHUB_OWNER = "ryantbyc"
 GITHUB_REPO  = "cisd-hub-public"
 GITHUB_PATH  = "docs/data/summary.json"
@@ -367,8 +438,9 @@ def main() -> int:
         "sites": {},
         "errors": {},
     }
-    for name, fn in (("meetings", build_meetings), ("finance", build_finance),
-                     ("policy", build_policy), ("books", build_books)):
+    for name, fn in (("meetings", build_meetings), ("performance", build_performance),
+                     ("finance", build_finance), ("policy", build_policy),
+                     ("books", build_books)):
         try:
             summary["sites"][name] = fn(src)
         except Exception as e:  # one site down must not blank the whole hub

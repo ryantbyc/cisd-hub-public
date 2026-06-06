@@ -8,7 +8,7 @@
   --line:#e2e6ec; --line-2:#cdd4de;
   --brand:#1f3a5f; --brand-700:#16293f; --brand-50:#eef2f7;
 
-  --c-meetings:#3b5b8c; --c-finance:#2f7d6b; --c-books:#a4562f; --c-policy:#5a4b8a;
+  --c-meetings:#3b5b8c; --c-finance:#2f7d6b; --c-books:#a4562f; --c-policy:#5a4b8a; --c-performance:#2c6e5d;
   --warn:#b4690e; --good:#2f7d6b; --bad:#b3261e;
 
   --font: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -68,10 +68,11 @@ main { padding:var(--sp-6) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
   width:3px; border-radius:3px; background:var(--accent,var(--brand));
 }
 .card:hover { box-shadow:var(--shadow-hover); border-color:var(--line-2); }
-.card[data-accent="meetings"]{ --accent:var(--c-meetings); }
-.card[data-accent="finance"] { --accent:var(--c-finance); }
-.card[data-accent="policy"]  { --accent:var(--c-policy); }
-.card[data-accent="books"]   { --accent:var(--c-books); }
+.card[data-accent="meetings"]    { --accent:var(--c-meetings); }
+.card[data-accent="performance"] { --accent:var(--c-performance); }
+.card[data-accent="finance"]     { --accent:var(--c-finance); }
+.card[data-accent="policy"]      { --accent:var(--c-policy); }
+.card[data-accent="books"]       { --accent:var(--c-books); }
 
 .card__head { display:flex; align-items:center; gap:var(--sp-3); margin-bottom:var(--sp-5); }
 .card__icon { font-size:18px; line-height:1; }
@@ -165,6 +166,44 @@ a.metric--link:hover { background:var(--surface-2); }
 
 .loading { color:var(--ink-3); font-size:14px; margin:0; }
 .err { color:var(--bad); font-size:13px; margin:0; }
+
+/* ── Performance card ───────────────────────────────────────── */
+.perf-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3);
+}
+@media (min-width:680px) { .perf-grid { grid-template-columns:repeat(3,1fr); } }
+
+.perf-tile {
+  background:var(--surface-2); border:1px solid var(--line);
+  border-radius:var(--r-sm); padding:var(--sp-3) var(--sp-4);
+}
+.perf-tile--grade { border-color:var(--c-performance); }
+
+.perf-grade {
+  font-size:36px; font-weight:800; line-height:1; letter-spacing:-.03em;
+  margin-bottom:var(--sp-1);
+}
+.grade-ltr--A { color:var(--good); }
+.grade-ltr--B { color:var(--c-performance); }
+.grade-ltr--C { color:var(--warn); }
+.grade-ltr--D,.grade-ltr--F { color:var(--bad); }
+
+.perf-tile__val {
+  font-size:26px; font-weight:700; line-height:1.1; letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums; color:var(--ink);
+}
+.perf-tile__label {
+  margin-top:3px; font-size:12px; font-weight:600; letter-spacing:.03em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.perf-tile__sub { font-size:11px; color:var(--ink-3); margin-top:1px; }
+.perf-tile__trend {
+  display:inline-flex; align-items:center; gap:2px;
+  font-size:11px; font-weight:600; margin-top:var(--sp-1);
+}
+.perf-tile__trend--up   { color:var(--good); }
+.perf-tile__trend--down { color:var(--bad); }
+.perf-tile__trend--neutral { color:var(--ink-3); }
 
 /* ── Site navigation chips ──────────────────────────────────── */
 .sitenav {
