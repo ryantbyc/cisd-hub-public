@@ -206,29 +206,40 @@ a.metric--link:hover { background:var(--surface-2); }
 .perf-tile__trend--neutral { color:var(--ink-3); }
 
 /* ── Site navigation chips ──────────────────────────────────── */
-.sitenav {
-  display:flex; flex-wrap:wrap; gap:var(--sp-2);
-  margin:0 0 var(--sp-6); list-style:none; padding:0;
-}
-.sitenav__chip {
+.sitenav { margin:var(--sp-5) 0 0; }
+
+.sitenav__tog, .sitenav__chip {
   display:inline-flex; align-items:center;
   padding:5px var(--sp-3); border-radius:999px;
   font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
-  text-decoration:none; white-space:nowrap;
+  white-space:nowrap; cursor:pointer;
   color:rgba(255,255,255,.78);
   background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
   transition:background .12s, color .12s, border-color .12s;
 }
-.sitenav__chip:hover {
+.sitenav__chip { text-decoration:none; }
+.sitenav__tog:hover, .sitenav__chip:hover {
   background:rgba(255,255,255,.23); color:#fff; border-color:rgba(255,255,255,.38);
 }
 .sitenav__chip[aria-current="page"] {
   background:rgba(255,255,255,.25); color:#fff;
   border-color:rgba(255,255,255,.55); cursor:default;
 }
+
+/* Desktop — toggle hidden, all chips in a flex row */
+.sitenav__tog { display:none; }
+.sitenav__chips {
+  display:flex; flex-wrap:wrap; gap:var(--sp-2);
+}
+
+/* Mobile — chips hidden behind a toggle button */
 @media (max-width:600px) {
-  .sitenav { display:grid; grid-template-columns:1fr 1fr; }
-  .sitenav__chip { justify-content:center; padding:9px var(--sp-3); font-size:13px; }
+  .sitenav__tog { display:inline-flex; }
+  .sitenav__chips { display:none; margin-top:var(--sp-2); }
+  .sitenav[data-open] .sitenav__chips {
+    display:grid; grid-template-columns:1fr 1fr;
+  }
+  .sitenav[data-open] .sitenav__chip { justify-content:center; padding:9px var(--sp-3); font-size:13px; }
 }
 
 @media (prefers-reduced-motion: reduce){

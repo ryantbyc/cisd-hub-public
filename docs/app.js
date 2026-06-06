@@ -2,6 +2,23 @@
 (function () {
   "use strict";
 
+  // ── Site-nav toggle (mobile "All Sites" button) ──────────────────────────
+  document.querySelectorAll(".sitenav__tog").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var nav  = btn.closest(".sitenav");
+      var open = nav.hasAttribute("data-open");
+      if (open) {
+        nav.removeAttribute("data-open");
+        btn.setAttribute("aria-expanded", "false");
+        btn.innerHTML = "All Sites &#9660;";
+      } else {
+        nav.setAttribute("data-open", "");
+        btn.setAttribute("aria-expanded", "true");
+        btn.innerHTML = "All Sites &#9650;";
+      }
+    });
+  });
+
   function fmtUsdCompact(n) {
     if (n == null || isNaN(n)) return "—";
     var abs = Math.abs(n);
