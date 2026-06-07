@@ -92,9 +92,25 @@
     var meta = el("div", "hl__meta");
     meta.appendChild(el("div", "hl__kicker", esc(kicker)));
     meta.appendChild(el("div", "hl__title", esc(mtg.type_display || "Meeting")));
-    var when = mtg.date_display || "";
-    if (mtg.item_count) when += " · " + mtg.item_count + " agenda items";
-    meta.appendChild(el("div", "hl__when", esc(when)));
+
+    // Pull the calendar date out of date_display (e.g. "June 16, 2026 - 5:00 p.m., Jett Center")
+    // and render it as a standout badge so the date itself catches the eye, separate from
+    // the time/location/agenda details.
+    var dateDisplay = mtg.date_display || "";
+    var dateMatch = dateDisplay.match(/^([A-Za-z]+ \d{1,2}, \d{4})\s*(?:[-–—]\s*(.*))?$/);
+    if (dateMatch) {
+      var badge = el("div", "hl__date");
+      badge.appendChild(el("span", "hl__date-icon", "📅"));
+      badge.appendChild(document.createTextNode(dateMatch[1]));
+      meta.appendChild(badge);
+      var rest = dateMatch[2] || "";
+      if (mtg.item_count) rest += (rest ? " · " : "") + mtg.item_count + " agenda items";
+      if (rest) meta.appendChild(el("div", "hl__when", esc(rest)));
+    } else {
+      var when = dateDisplay;
+      if (mtg.item_count) when += " · " + mtg.item_count + " agenda items";
+      meta.appendChild(el("div", "hl__when", esc(when)));
+    }
     btn.appendChild(meta);
     btn.appendChild(el("span", "hl__chev", "▾"));
     box.appendChild(btn);
