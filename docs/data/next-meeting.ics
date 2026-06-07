@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//CISD Board Monitor//Hub//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:2026-06-16-scheduled-meeting@boardmonitor.app
+DTSTAMP:20260607T165954Z
+DTSTART:20260616T220000Z
+DTEND:20260617T000000Z
+SUMMARY:CISD Board Meeting — Regular Meeting
+LOCATION:Jett Center
+DESCRIPTION:Conroe ISD Board of Trustees meeting. Live details and agenda: https://cisd-meetings.boardmonitor.app — this is an independent constituent resource\, not an official CISD calendar.
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:CISD Board Meeting starts in 2 hours
+TRIGGER:-PT2H
+END:VALARM
+END:VEVENT
+END:VCALENDAR

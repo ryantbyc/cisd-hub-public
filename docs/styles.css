@@ -114,13 +114,23 @@ a.metric--link:hover { background:var(--surface-2); }
 .hl__meta { flex:1; }
 .hl__kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--c-meetings); }
 .hl__title { margin-top:2px; font-size:20px; font-weight:700; }
+.hl__date-row { display:flex; align-items:center; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-2); }
 .hl__date {
-  display:inline-flex; align-items:center; gap:6px; margin-top:var(--sp-2);
+  display:inline-flex; align-items:center; gap:6px;
   font-size:13px; font-weight:700; letter-spacing:.01em; color:#fff;
   background:var(--accent, var(--c-meetings)); padding:4px 11px var(--sp-1);
   border-radius:999px; line-height:1.3;
 }
 .hl__date-icon { font-size:12px; line-height:1; }
+.hl__addcal {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:12px; font-weight:700; letter-spacing:.01em; text-decoration:none;
+  color:#a3281e; background:#fdeceb; border:1px solid #f4c6c2;
+  padding:4px 11px var(--sp-1); border-radius:999px; line-height:1.3;
+  transition:background .12s ease, border-color .12s ease;
+}
+.hl__addcal:hover { background:#fbdcd9; border-color:#eaa8a2; }
+.hl__addcal:focus-visible { outline:2px solid #a3281e; outline-offset:2px; }
 .hl__when { margin-top:var(--sp-1); font-size:14px; color:var(--ink-2); }
 .hl__chev { transition:transform .2s ease; color:var(--ink-3); margin-top:var(--sp-1); flex:none; }
 .hl__btn[aria-expanded="true"] .hl__chev { transform:rotate(180deg); }

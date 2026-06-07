@@ -77,7 +77,7 @@
     });
   }
 
-  function buildHighlightBox(kicker, mtg, expanded) {
+  function buildHighlightBox(kicker, mtg, expanded, icsUrl) {
     var box = el("div", "hl");
     var bodyId = "hlb-" + kicker.toLowerCase().replace(/\W+/g, "");
     if (!mtg) {
@@ -99,10 +99,18 @@
     var dateDisplay = mtg.date_display || "";
     var dateMatch = dateDisplay.match(/^([A-Za-z]+ \d{1,2}, \d{4})\s*(?:[-–—]\s*(.*))?$/);
     if (dateMatch) {
+      var dateRow = el("div", "hl__date-row");
       var badge = el("div", "hl__date");
       badge.appendChild(el("span", "hl__date-icon", "📅"));
       badge.appendChild(document.createTextNode(dateMatch[1]));
-      meta.appendChild(badge);
+      dateRow.appendChild(badge);
+      if (icsUrl) {
+        var addCal = el("a", "hl__addcal", "+ Add to Calendar");
+        addCal.href = icsUrl;
+        addCal.setAttribute("aria-label", "Add the next CISD board meeting to your calendar (.ics file with a 2-hour reminder)");
+        dateRow.appendChild(addCal);
+      }
+      meta.appendChild(dateRow);
       var rest = dateMatch[2] || "";
       if (mtg.item_count) rest += (rest ? " · " : "") + mtg.item_count + " agenda items";
       if (rest) meta.appendChild(el("div", "hl__when", esc(rest)));
@@ -187,7 +195,7 @@
     if (!m) { node.appendChild(el("p", "err", "Meeting data unavailable.")); return; }
     var hasNext = !!m.next;
     if (hasNext) {
-      node.appendChild(buildHighlightBox("Next meeting", m.next, false));
+      node.appendChild(buildHighlightBox("Next meeting", m.next, false, m.ics_url));
       node.appendChild(buildHighlightBox("Last meeting", m.last, false));
     } else {
       // No upcoming meeting — show last meeting full-width with a no-upcoming note

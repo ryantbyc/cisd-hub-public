@@ -26,11 +26,15 @@ import argparse
 import base64
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import urlopen, Request
+from zoneinfo import ZoneInfo
+
+CENTRAL = ZoneInfo("America/Chicago")
 
 # ---- source configuration -------------------------------------------------
 # Live domains. NOTE: meetings currently lives at cisd.boardmonitor.app; after
@@ -89,6 +93,76 @@ def parse_date(s: str | None) -> datetime | None:
         return None
 
 
+def parse_meeting_time(time_str: str | None) -> tuple[int, int] | None:
+    """'5:00 p.m.' / '6:00 PM' / '8:30 a.m.' -> (hour24, minute), else None."""
+    if not time_str:
+        return None
+    m = re.match(r"(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\.?", time_str.strip(), re.I)
+    if not m:
+        return None
+    h, mi, ap = int(m.group(1)), int(m.group(2)), m.group(3).lower()
+    if ap == "p" and h != 12:
+        h += 12
+    if ap == "a" and h == 12:
+        h = 0
+    return h, mi
+
+
+def ics_escape(s: str) -> str:
+    """Escape text per RFC 5545 (backslash, comma, semicolon, newline)."""
+    return (s or "").replace("\\", "\\\\").replace(",", "\\,").replace(";", "\\;").replace("\n", "\\n")
+
+
+def build_next_meeting_ics(next_detail: dict | None) -> str | None:
+    """
+    Build a static .ics for the next board meeting — deterministic, no LLM.
+    Requires next_detail['start_iso'] (an aware Central-time ISO datetime,
+    populated in build_meetings from the authoritative scheduled.json).
+    Returns None when we don't have a confident start time to anchor the event.
+    """
+    if not next_detail or not next_detail.get("start_iso"):
+        return None
+    try:
+        start = datetime.fromisoformat(next_detail["start_iso"])
+    except ValueError:
+        return None
+    end = start + timedelta(hours=2)  # typical board meeting block
+
+    def fmt_utc(dt: datetime) -> str:
+        return dt.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+    location = next_detail.get("location") or "Conroe ISD Administration Building, Conroe, TX"
+    summary = f"CISD Board Meeting — {next_detail.get('type_display') or 'Meeting'}"
+    description = ("Conroe ISD Board of Trustees meeting. "
+                   "Live details and agenda: https://cisd-meetings.boardmonitor.app — "
+                   "this is an independent constituent resource, not an official CISD calendar.")
+    uid = f"{start.date().isoformat()}-{(next_detail.get('id') or 'scheduled-meeting')}@boardmonitor.app"
+
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//CISD Board Monitor//Hub//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        "BEGIN:VEVENT",
+        f"UID:{uid}",
+        f"DTSTAMP:{NOW.strftime('%Y%m%dT%H%M%SZ')}",
+        f"DTSTART:{fmt_utc(start)}",
+        f"DTEND:{fmt_utc(end)}",
+        f"SUMMARY:{ics_escape(summary)}",
+        f"LOCATION:{ics_escape(location)}",
+        f"DESCRIPTION:{ics_escape(description)}",
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        "DESCRIPTION:CISD Board Meeting starts in 2 hours",
+        "TRIGGER:-PT2H",
+        "END:VALARM",
+        "END:VEVENT",
+        "END:VCALENDAR",
+    ]
+    return "\r\n".join(lines) + "\r\n"
+
+
 def md_section_bullets(md: str, heading: str, limit: int = 8) -> list[str]:
     """Pull '- ' bullets that follow a '## <heading>' until the next divider."""
     out: list[str] = []
@@ -126,6 +200,35 @@ def build_meetings(src: Source) -> dict:
     completed = [m for m in meetings if m.get("has_notes")]
     last_m = completed[0] if completed else None
 
+    # Authoritative schedule (clean ISO date + time + location) — used to anchor
+    # a precise calendar event for the next meeting (for the .ics "Add to Calendar").
+    schedule_by_date: dict[str, dict] = {}
+    try:
+        sched_idx = src.get("meetings", "data/scheduled.json")
+        for s in sched_idx.get("meetings", []):
+            if s.get("date"):
+                schedule_by_date[s["date"]] = s
+    except Exception:
+        pass
+
+    def schedule_start(date_iso: str | None) -> tuple[datetime | None, str | None]:
+        """Combine YYYY-MM-DD + scheduled time -> aware Central-time datetime, plus location."""
+        if not date_iso:
+            return None, None
+        s = schedule_by_date.get(date_iso)
+        if not s:
+            return None, None
+        location = s.get("location") or None
+        hm = parse_meeting_time(s.get("time"))
+        if not hm:
+            return None, location
+        h, mi = hm
+        try:
+            y, mo, da = (int(x) for x in date_iso.split("-"))
+            return datetime(y, mo, da, h, mi, tzinfo=CENTRAL), location
+        except Exception:
+            return None, location
+
     def detail(m, kind):
         if not m:
             return None
@@ -136,7 +239,7 @@ def build_meetings(src: Source) -> dict:
                        for b in raw.split("\n") if b.strip()]
         else:
             bullets = md_section_bullets(doc.get("meeting_notes_md", ""), "Meeting Highlights")
-        return {
+        d = {
             "id": m["id"],
             "date_display": m.get("date_display"),
             "type_display": m.get("type_display"),
@@ -144,6 +247,13 @@ def build_meetings(src: Source) -> dict:
             "highlights": bullets,
             "url": f"https://cisd-meetings.boardmonitor.app/meeting.html?id={m['id']}",
         }
+        if kind == "next":
+            start, location = schedule_start(m.get("meeting_date"))
+            if start:
+                d["start_iso"] = start.isoformat()
+            if location:
+                d["location"] = location
+        return d
 
     next_detail = detail(next_m, "next")
 
@@ -169,6 +279,11 @@ def build_meetings(src: Source) -> dict:
                     "url": None,
                     "scheduled_only": True,
                 }
+                start, location = schedule_start(ns["date"])
+                if start:
+                    next_detail["start_iso"] = start.isoformat()
+                if location:
+                    next_detail["location"] = location
         except Exception:
             pass
 
@@ -400,9 +515,9 @@ def github_api(method: str, path: str, token: str, body: dict | None = None):
         return json.loads(resp.read())
 
 
-def push_summary(content: str, token: str) -> None:
-    """Upload summary.json to GitHub via Contents API (no git binary needed)."""
-    api_path = f"/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{GITHUB_PATH}"
+def push_file(repo_path: str, content: str, message: str, token: str) -> None:
+    """Upload a text file to GitHub via the Contents API (no git binary needed)."""
+    api_path = f"/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{repo_path}"
     # Get current SHA so GitHub accepts the update.
     try:
         current = github_api("GET", api_path, token)
@@ -413,14 +528,14 @@ def push_summary(content: str, token: str) -> None:
         else:
             raise
     body = {
-        "message": f"data: refresh hub summary ({NOW.strftime('%Y-%m-%dT%H:%MZ')})",
+        "message": message,
         "content": base64.b64encode(content.encode()).decode(),
         "branch": "main",
     }
     if sha:
         body["sha"] = sha
     github_api("PUT", api_path, token, body)
-    print("pushed summary.json to GitHub via API")
+    print(f"pushed {repo_path} to GitHub via API")
 
 
 def main() -> int:
@@ -449,6 +564,20 @@ def main() -> int:
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+
+    # Pre-generated "Add to Calendar" .ics for the next board meeting — deterministic,
+    # built straight from scheduled.json's date/time/location (no LLM, no derived prose).
+    ics_content = None
+    meetings_site = summary["sites"].get("meetings")
+    if meetings_site and meetings_site.get("next"):
+        ics_content = build_next_meeting_ics(meetings_site["next"])
+        if ics_content:
+            ics_out = out.parent / "next-meeting.ics"
+            with open(ics_out, "w", encoding="utf-8", newline="") as fh:
+                fh.write(ics_content)
+            meetings_site["ics_url"] = "data/next-meeting.ics"
+            print(f"wrote {ics_out}")
+
     content = json.dumps(summary, indent=2, ensure_ascii=False)
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(content)
@@ -456,7 +585,11 @@ def main() -> int:
 
     if args.push:
         token = load_token()
-        push_summary(content, token)
+        push_file(GITHUB_PATH, content,
+                  f"data: refresh hub summary ({NOW.strftime('%Y-%m-%dT%H:%MZ')})", token)
+        if ics_content:
+            push_file("docs/data/next-meeting.ics", ics_content,
+                      f"data: refresh next-meeting.ics ({NOW.strftime('%Y-%m-%dT%H:%MZ')})", token)
 
     return 0
 
