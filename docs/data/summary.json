@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-07T01:00:01.839043+00:00",
-  "source_mode": "live",
+  "generated_at": "2026-06-09T02:29:46.832630+00:00",
+  "source_mode": "local",
   "sites": {
     "meetings": {
       "next": {
@@ -11,7 +11,7 @@
         "highlights": [],
         "url": null,
         "scheduled_only": true,
-        "start_iso": "2026-06-16T17:00:00-05:00",
+        "start_iso": null,
         "location": "Jett Center"
       },
       "last": {
