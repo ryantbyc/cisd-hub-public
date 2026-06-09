@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-09T02:29:46.832630+00:00",
-  "source_mode": "local",
+  "generated_at": "2026-06-09T01:00:03.054435+00:00",
+  "source_mode": "live",
   "sites": {
     "meetings": {
       "next": {
@@ -10,9 +10,7 @@
         "item_count": null,
         "highlights": [],
         "url": null,
-        "scheduled_only": true,
-        "start_iso": null,
-        "location": "Jett Center"
+        "scheduled_only": true
       },
       "last": {
         "id": "2026-06-02_special",
@@ -30,8 +28,7 @@
         ],
         "url": "https://cisd-meetings.boardmonitor.app/meeting.html?id=2026-06-02_special"
       },
-      "url": "https://cisd-meetings.boardmonitor.app",
-      "ics_url": "data/next-meeting.ics"
+      "url": "https://cisd-meetings.boardmonitor.app"
     },
     "performance": {
       "school_year": "2024-25",
