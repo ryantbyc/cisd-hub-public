@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T12:25:13.371218+00:00",
+  "generated_at": "2026-06-10T18:21:25.800183+00:00",
   "source_mode": "live",
   "sites": {
     "meetings": {
@@ -19,7 +19,9 @@
           "The board will discuss and may approve the 2026-2027 employee compensation plan, which sets salaries and pay for all district staff.",
           "The board will consider approving a change in the construction delivery method for the Washington High School Phase I project."
         ],
-        "url": "https://cisd-meetings.boardmonitor.app/meeting.html?id=2026-06-16_regular"
+        "url": "https://cisd-meetings.boardmonitor.app/meeting.html?id=2026-06-16_regular",
+        "start_iso": "2026-06-16T17:00:00-05:00",
+        "location": "Jett Center"
       },
       "last": {
         "id": "2026-06-02_special",
@@ -165,6 +167,36 @@
       "removed_12mo": 1,
       "pending": 1,
       "url": "https://cisd-books.boardmonitor.app"
+    },
+    "staff": {
+      "metrics": [
+        {
+          "label": "Hires",
+          "value": 463,
+          "fmt": "int",
+          "sub": "2025-26"
+        },
+        {
+          "label": "Departures",
+          "value": 693,
+          "fmt": "int",
+          "sub": "2025-26 (-46 vs 2024-25)"
+        },
+        {
+          "label": "Net Change",
+          "value": -230,
+          "fmt": "int_signed",
+          "sub": "2025-26"
+        },
+        {
+          "label": "Open Positions",
+          "value": 232,
+          "fmt": "int",
+          "sub": "Current"
+        }
+      ],
+      "data_updated": "2026-05-22T19:33:12Z",
+      "url": "https://cisd-staff.boardmonitor.app"
     }
   },
   "errors": {}
