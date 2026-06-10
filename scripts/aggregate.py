@@ -46,6 +46,7 @@ LIVE = {
     "policy":      "https://cisd-policy.boardmonitor.app",
     "books":       "https://cisd-books.boardmonitor.app",
     "performance": "https://cisd-performance.boardmonitor.app",
+    "staff":       "https://cisd-staff.boardmonitor.app",
 }
 LOCAL_DIRS = {
     "meetings":    "cisd-bmm-public",
@@ -53,6 +54,7 @@ LOCAL_DIRS = {
     "policy":      "cisd-policy-public",
     "books":       "cisd-books-public",
     "performance": "cisd-performance-public",
+    "staff":       "cisd-staff-public",
 }
 
 NOW = datetime.now(timezone.utc)
@@ -479,6 +481,54 @@ def build_performance(src: Source) -> dict:
     }
 
 
+def build_staff(src: Source) -> dict:
+    """Key metrics from the staff site: latest SY hires/departures and open positions."""
+    meta = src.get("staff", "data/meta.json")
+    turn = src.get("staff", "data/turnover.json")
+    jobs: list[dict] = []
+    try:
+        jobs = src.get("staff", "data/jobs_history.json")
+    except Exception:
+        pass
+
+    # Latest school year summary
+    sys_ = turn.get("school_years", [])
+    latest_sy = sys_[-1] if sys_ else None
+    prev_sy   = sys_[-2] if len(sys_) >= 2 else None
+    sy_sum    = turn.get("school_year_summary", {})
+    row       = sy_sum.get(latest_sy, {})
+    hires     = row.get("hires")
+    depts     = row.get("departures")
+    net       = row.get("net")
+
+    # Change in departures vs prior SY
+    dept_sub = latest_sy if latest_sy else None
+    if prev_sy and depts is not None:
+        prev_row = sy_sum.get(prev_sy, {})
+        prev_d = prev_row.get("departures")
+        if prev_d is not None:
+            chg = depts - prev_d
+            dept_sub = f"{latest_sy} ({chg:+d} vs {prev_sy})"
+
+    # Latest open positions
+    opens = None
+    if jobs:
+        latest_job = max(jobs, key=lambda j: j.get("date", ""))
+        opens = latest_job.get("total")
+
+    metrics_out = [
+        {"label": "Hires",       "value": hires, "fmt": "int", "sub": latest_sy},
+        {"label": "Departures",  "value": depts, "fmt": "int", "sub": dept_sub},
+        {"label": "Net Change",  "value": net,   "fmt": "int_signed", "sub": latest_sy},
+        {"label": "Open Positions", "value": opens, "fmt": "int", "sub": "Current"},
+    ]
+    return {
+        "metrics": metrics_out,
+        "data_updated": meta.get("last_updated"),
+        "url": "https://cisd-staff.boardmonitor.app",
+    }
+
+
 GITHUB_OWNER = "ryantbyc"
 GITHUB_REPO  = "cisd-hub-public"
 GITHUB_PATH  = "docs/data/summary.json"
@@ -555,7 +605,7 @@ def main() -> int:
     }
     for name, fn in (("meetings", build_meetings), ("performance", build_performance),
                      ("finance", build_finance), ("policy", build_policy),
-                     ("books", build_books)):
+                     ("books", build_books), ("staff", build_staff)):
         try:
             summary["sites"][name] = fn(src)
         except Exception as e:  # one site down must not blank the whole hub

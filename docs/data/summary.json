@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-09T02:30:29.701383+00:00",
+  "generated_at": "2026-06-10T01:17:12.270677+00:00",
   "source_mode": "local",
   "sites": {
     "meetings": {
@@ -11,7 +11,7 @@
         "highlights": [],
         "url": null,
         "scheduled_only": true,
-        "start_iso": null,
+        "start_iso": "2026-06-16T17:00:00-05:00",
         "location": "Jett Center"
       },
       "last": {
@@ -158,6 +158,36 @@
       "removed_12mo": 1,
       "pending": 1,
       "url": "https://cisd-books.boardmonitor.app"
+    },
+    "staff": {
+      "metrics": [
+        {
+          "label": "Hires",
+          "value": 463,
+          "fmt": "int",
+          "sub": "2025-26"
+        },
+        {
+          "label": "Departures",
+          "value": 693,
+          "fmt": "int",
+          "sub": "2025-26 (-46 vs 2024-25)"
+        },
+        {
+          "label": "Net Change",
+          "value": -230,
+          "fmt": "int_signed",
+          "sub": "2025-26"
+        },
+        {
+          "label": "Open Positions",
+          "value": 232,
+          "fmt": "int",
+          "sub": "Current"
+        }
+      ],
+      "data_updated": "2026-05-22T19:33:12Z",
+      "url": "https://cisd-staff.boardmonitor.app"
     }
   },
   "errors": {}

@@ -31,9 +31,15 @@
     if (n == null || isNaN(n)) return "—";
     return Number(n).toLocaleString("en-US");
   }
+  function fmtIntSigned(n) {
+    if (n == null || isNaN(n)) return "—";
+    var v = Number(n);
+    return (v > 0 ? "+" : "") + v.toLocaleString("en-US");
+  }
   function fmtMetric(m) {
-    if (m.fmt === "usd_compact") return fmtUsdCompact(m.value);
-    if (m.fmt === "int") return fmtInt(m.value);
+    if (m.fmt === "usd_compact")  return fmtUsdCompact(m.value);
+    if (m.fmt === "int")          return fmtInt(m.value);
+    if (m.fmt === "int_signed")   return fmtIntSigned(m.value);
     return m.value == null ? "—" : String(m.value);
   }
   function el(tag, cls, html) {
@@ -274,6 +280,7 @@
       if (s.finance)     { renderMetrics(document.getElementById("finance-metrics"), s.finance.metrics, s.finance.url); setLink("finance", s.finance.url); }
       if (s.policy)      { renderMetrics(document.getElementById("policy-metrics"), s.policy.metrics, s.policy.url); setLink("policy", s.policy.url); }
       if (s.books)       { renderMetrics(document.getElementById("books-metrics"), s.books.metrics, s.books.url); setLink("books", s.books.url); }
+      if (s.staff)       { renderMetrics(document.getElementById("staff-metrics"), s.staff.metrics, s.staff.url); setLink("staff", s.staff.url); }
 
       var stamp = fmtStamp(data.generated_at);
       if (stamp) {
@@ -282,7 +289,7 @@
       }
     })
     .catch(function (e) {
-      ["meetings-body", "performance-body", "finance-metrics", "policy-metrics", "books-metrics"].forEach(function (id) {
+      ["meetings-body", "performance-body", "finance-metrics", "policy-metrics", "books-metrics", "staff-metrics"].forEach(function (id) {
         var n = document.getElementById(id);
         if (n) n.innerHTML = '<p class="err">Could not load data (' + esc(e.message) + ').</p>';
       });
