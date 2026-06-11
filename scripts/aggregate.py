@@ -257,7 +257,10 @@ def build_meetings(src: Source) -> dict:
                 d["location"] = location
         return d
 
-    next_detail = detail(next_m, "next")
+    try:
+        next_detail = detail(next_m, "next")
+    except Exception:
+        next_detail = None  # detail JSON not yet published; fall through to scheduled.json stub
 
     # If no agenda-bearing next meeting exists, fall back to scheduled.json for a stub.
     if next_detail is None:
