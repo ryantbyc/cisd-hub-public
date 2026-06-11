@@ -307,56 +307,177 @@ def fy_label(fy: str) -> str:
     return fy
 
 
+# ── Finance compact-number helpers ─────────────────────────────────────────
+def _fmt_m(n: float, decimals: int = 1) -> str:
+    """'$4.7M' (1 dp, default) or '$159M' (0 dp). Always uses the magnitude."""
+    val = round(abs(float(n)) / 1e6, decimals)
+    if decimals == 0:
+        return f"${int(round(val))}M"
+    return f"${val:.{decimals}f}M"
+
+
+def _fmt_b(n: float) -> str:
+    """'$1.97B' — two decimal places, magnitude only."""
+    return f"${abs(float(n)) / 1e9:.2f}B"
+
+
 def build_finance(src: Source) -> dict:
+    BASE_URL = "https://cisd-finance.boardmonitor.app"
     meta = src.get("finance", "data/meta.json")
 
-    # Annual budget — latest fiscal year.
-    budget_val, budget_fy = None, None
+    # ── Monthly financial statement (most-recent record, index 0) ──────────
+    stmt: dict = {}
+    assessment_ok = False
     try:
-        bt = src.get("finance", "data/budget_totals.json")
-        if bt:
-            budget_fy = max(bt.keys())
-            budget_val = bt[budget_fy]
+        stmts = src.get("finance", "data/financial_statements.json")
+        if stmts:
+            stmt = stmts[0]
+    except Exception:
+        pass
+    try:
+        asmt = src.get("finance", "data/assessment.json") or {}
+        assessment_ok = asmt.get("status") == "ok"
     except Exception:
         pass
 
-    # Staff turnover — latest fiscal year's departures (rate unavailable upstream).
-    departures, turn_sub = None, None
-    try:
-        turn = src.get("finance", "data/turnover.json")
-        fys = turn.get("fiscal_years", [])
-        if fys:
-            latest = fys[-1]
-            row = turn.get("summary", {}).get(latest, {})
-            departures = row.get("departures")
-            net = row.get("net")
-            # latest FY is the in-progress year → year-to-date
-            bits = [f"{fy_label(latest)} YTD"]
-            if net is not None:
-                bits.append(f"net {net:+d}")
-            turn_sub = " · ".join(bits)
-    except Exception:
-        pass
+    # Pending if statement data is missing or the assessment hasn't been published yet.
+    report_pending = not stmt or not assessment_ok
 
-    try:
-        wd = src.get("finance", "data/watchdog.json")
-        flags_total = len(wd)
-        flags_high = sum(1 for f in wd if f.get("severity") == "high")
-    except Exception:
-        flags_total, flags_high = None, None
+    PENDING_MSG = "Latest report pending review"
+    BOX_LABELS = ["Budget Year Progress", "Reserves", "Year-End Outlook", "2023 Bond Program"]
 
-    metrics_out = [
-        {"label": "Spend Tracked (6 yr)", "value": meta.get("total_spend"), "fmt": "usd_compact"},
-        {"label": "Annual Budget", "value": budget_val, "fmt": "usd_compact",
-         "sub": (fy_label(budget_fy) if budget_fy else None)},
-        {"label": "Watchdog Flags", "value": flags_total, "fmt": "int",
-         "sub": (f"{flags_high} high severity" if flags_high is not None else None)},
-        {"label": "Staff Departures", "value": departures, "fmt": "int", "sub": turn_sub},
-    ]
+    if report_pending:
+        metrics_out = [
+            {"label": lbl, "value": PENDING_MSG, "fmt": "text", "link": BASE_URL}
+            for lbl in BOX_LABELS
+        ]
+        report_month = None
+    else:
+        gf   = stmt.get("general_fund", {})
+        yep  = stmt.get("yearend_projection", {})
+        bond = stmt.get("bond_2023") or {}
+
+        fiscal_month = stmt.get("fiscal_month", 0)
+        rev_pct      = round(gf.get("revenue_pct", 0))
+        exp_pct      = round(gf.get("expenditure_pct", 0))
+
+        # ── Box 1: Budget Year Progress (context box; shown first/leftmost) ──
+        box1 = {
+            "label":   "Budget Year Progress",
+            "value":   f"Month {fiscal_month} of 12",
+            "fmt":     "text",
+            "sub":     f"About {rev_pct}% in, {exp_pct}% spent",
+            "link":    BASE_URL,
+            "context": True,
+        }
+
+        # ── Box 2: Reserves ────────────────────────────────────────────────
+        # Always use the PROJECTED YEAR-END fund balance, never the current
+        # mid-year balance. Mid-year is inflated by the seasonal property-tax
+        # receipt pattern and is not the district's true reserve level.
+        proj_bal = yep.get("projected_fund_balance")
+        proj_exp = yep.get("projected_expenditure")
+        months_reserve = (
+            round(proj_bal / (proj_exp / 12), 1)
+            if (proj_bal and proj_exp)
+            else None
+        )
+        bal_str = _fmt_m(proj_bal, 0) if proj_bal else "N/A"
+        box2 = {
+            "label": "Reserves",
+            "value": f"~{months_reserve} months" if months_reserve is not None else "N/A",
+            "fmt":   "text",
+            "sub":   f"Proj. ~{bal_str} by Aug 31",
+            "link":  BASE_URL,
+        }
+
+        # ── Box 3: Year-End Outlook ────────────────────────────────────────
+        proj_net = yep.get("projected_net_change")
+        rev_bud  = gf.get("revenue_budget")
+        exp_bud  = gf.get("expenditure_budget")
+        # other_financing_uses lives in yearend_projection in the statement schema
+        ofu = yep.get("other_financing_uses") or 0
+
+        if proj_net is not None:
+            net_str = _fmt_m(proj_net)  # uses magnitude
+            if proj_net < -100_000:
+                outlook_val = f"Savings down ~{net_str}"
+            elif proj_net > 100_000:
+                outlook_val = f"Savings up ~{net_str}"
+            else:
+                outlook_val = "Savings about flat"
+
+            # Compare projected net change to what the adopted/amended budget planned.
+            # budget_net is derived: revenue_budget - expenditure_budget - other_financing_uses.
+            # No explicit amended_budget_net_change field exists in the statement; this
+            # derivation is the closest available proxy.
+            budget_net = (rev_bud - exp_bud - ofu) if (rev_bud and exp_bud) else None
+            if budget_net is not None:
+                close = abs(proj_net - budget_net) <= 0.10 * max(abs(proj_net), abs(budget_net), 1)
+                if close:
+                    outlook_sub: str | None = "Planned, close to budget"
+                else:
+                    bm = _fmt_m(budget_net)
+                    if budget_net < 0:
+                        if proj_net >= 0:
+                            outlook_sub = f"Better than budgeted {bm} drawdown"
+                        elif proj_net > budget_net:   # less negative = smaller drawdown
+                            outlook_sub = f"Smaller drawdown than budgeted {bm}"
+                        else:
+                            outlook_sub = f"Larger drawdown than budgeted {bm}"
+                    else:
+                        if proj_net < 0:
+                            outlook_sub = f"Drawdown vs budgeted {bm} gain"
+                        elif proj_net >= budget_net:
+                            outlook_sub = f"Larger gain than budgeted {bm}"
+                        else:
+                            outlook_sub = f"Smaller gain than budgeted {bm}"
+            else:
+                outlook_sub = None
+        else:
+            outlook_val, outlook_sub = "N/A", None
+
+        box3 = {
+            "label": "Year-End Outlook",
+            "value": outlook_val,
+            "fmt":   "text",
+            "sub":   outlook_sub,
+            "link":  BASE_URL,
+        }
+
+        # ── Box 4: 2023 Bond Program ───────────────────────────────────────
+        if bond:
+            authorized = bond.get("authorized", 0)
+            expended   = bond.get("expended_encumbered", 0)
+            # Use pre-computed pct_expended from the statement if available,
+            # otherwise derive from expended / authorized.
+            pct_raw     = bond.get("pct_expended")
+            pct_display = (
+                round(pct_raw)
+                if pct_raw is not None
+                else (round(expended / authorized * 100) if authorized else 0)
+            )
+            auth_str = _fmt_b(authorized)
+            exp_str  = _fmt_b(expended)
+            box4: dict = {
+                "label": "2023 Bond Program",
+                "value": f"{auth_str} bond, {pct_display}% deployed",
+                "fmt":   "text",
+                "sub":   f"{exp_str} of {auth_str} committed",
+                "link":  BASE_URL,
+            }
+        else:
+            box4 = {"label": "2023 Bond Program", "value": "N/A", "fmt": "text", "link": BASE_URL}
+
+        metrics_out = [box1, box2, box3, box4]
+        report_month = stmt.get("period_label")
+
     return {
-        "metrics": metrics_out,
-        "data_updated": meta.get("last_updated"),
-        "url": "https://cisd-finance.boardmonitor.app",
+        "metrics":        metrics_out,
+        "report_month":   report_month,
+        "report_pending": report_pending,
+        "data_updated":   meta.get("last_updated"),
+        "url":            BASE_URL,
     }
 
 

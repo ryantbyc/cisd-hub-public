@@ -87,8 +87,26 @@ main { padding:var(--sp-6) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
 }
 .card__open:hover { background:var(--surface-2); }
 
-/* Metrics 2x2 */
+/* Report-period label in the card head (e.g. "April 2026") */
+.card__period {
+  font-size:11px; font-weight:500; color:var(--ink-3);
+  background:var(--surface-2); border-radius:var(--r-sm);
+  padding:2px 6px; white-space:nowrap; margin-left:auto;
+}
+/* Push the Open ↗ link after the period badge */
+.card__period + .card__open { margin-left:var(--sp-2); }
+
+/* Metrics 2x2 (default) */
 .metrics { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3) var(--sp-4); }
+
+/* Finance card: 2×2 on mobile → single row of 4 on wider screens */
+@media (min-width:640px) {
+  .metrics--four-wide { grid-template-columns:repeat(4,1fr); gap:var(--sp-3); }
+}
+
+/* Pending state: mute all metric values */
+.metrics--pending .metric__val { color:var(--ink-3); font-size:13px; font-weight:500; }
+
 a.metric--link {
   display:block; text-decoration:none; color:inherit;
   border-radius:var(--r-sm); padding:var(--sp-2); margin:-var(--sp-2);
@@ -96,9 +114,24 @@ a.metric--link {
 }
 a.metric--link:hover { background:var(--surface-2); }
 
+/* Context box (Box 1 — Budget Year Progress): subtle background distinction */
+.metric--context {
+  background:var(--surface-2);
+  border-radius:var(--r-sm);
+  padding:var(--sp-2);
+  margin:-var(--sp-2);
+}
+a.metric--link.metric--context:hover { background:var(--line); }
+
 .metric__val {
-  font-size:26px; font-weight:700; line-height:1.1; letter-spacing:-.02em;
+  font-size:22px; font-weight:700; line-height:1.15; letter-spacing:-.01em;
   font-variant-numeric:tabular-nums; color:var(--ink);
+  /* Allow text values ("Month 8 of 12") to wrap without overflow */
+  overflow-wrap:break-word; word-break:break-word;
+}
+@media (min-width:640px) {
+  /* Restore larger size on wider screens where each box has more room */
+  .metrics--four-wide .metric__val { font-size:18px; }
 }
 .metric__label {
   margin-top:2px; font-size:12px; font-weight:600; letter-spacing:.03em;

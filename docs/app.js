@@ -66,16 +66,19 @@
     node.innerHTML = "";
     if (!metrics || !metrics.length) { node.appendChild(el("p", "err", "No data available.")); return; }
     metrics.forEach(function (m) {
+      // Per-metric link overrides the card-level siteUrl (enables future deep-links).
+      var href = m.link || siteUrl;
       var cell;
-      if (siteUrl) {
+      if (href) {
         cell = document.createElement("a");
         cell.className = "metric metric--link";
-        cell.href = siteUrl;
+        cell.href = href;
         cell.target = "_blank";
         cell.rel = "noopener";
       } else {
         cell = el("div", "metric");
       }
+      if (m.context) cell.classList.add("metric--context");
       cell.appendChild(el("div", "metric__val", esc(fmtMetric(m))));
       cell.appendChild(el("div", "metric__label", esc(m.label)));
       if (m.sub) cell.appendChild(el("div", "metric__sub", esc(m.sub)));
@@ -277,7 +280,18 @@
       var s = data.sites || {};
       if (s.meetings)    { renderMeetings(document.getElementById("meetings-body"), s.meetings); setLink("meetings", s.meetings.url); }
       if (s.performance) { renderPerformance(document.getElementById("performance-body"), s.performance); setLink("performance", s.performance.url); }
-      if (s.finance)     { renderMetrics(document.getElementById("finance-metrics"), s.finance.metrics, s.finance.url); setLink("finance", s.finance.url); }
+      if (s.finance) {
+        // Inject report month into the card header (e.g. "April 2026").
+        var fp = document.getElementById("finance-period");
+        if (fp) fp.textContent = s.finance.report_month || "";
+
+        // Explicit pending state: add a visual marker to the metrics container.
+        var fm = document.getElementById("finance-metrics");
+        if (s.finance.report_pending) fm.classList.add("metrics--pending");
+
+        renderMetrics(fm, s.finance.metrics, s.finance.url);
+        setLink("finance", s.finance.url);
+      }
       if (s.policy)      { renderMetrics(document.getElementById("policy-metrics"), s.policy.metrics, s.policy.url); setLink("policy", s.policy.url); }
       if (s.books)       { renderMetrics(document.getElementById("books-metrics"), s.books.metrics, s.books.url); setLink("books", s.books.url); }
       if (s.staff)       { renderMetrics(document.getElementById("staff-metrics"), s.staff.metrics, s.staff.url); setLink("staff", s.staff.url); }
