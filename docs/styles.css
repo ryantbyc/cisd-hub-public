@@ -56,6 +56,9 @@ a { color:var(--brand); }
 main { padding:var(--sp-6) 0 var(--sp-6); display:grid; gap:var(--sp-5); }
 .grid-3 { display:grid; gap:var(--sp-5); grid-template-columns:repeat(3,1fr); }
 @media (max-width:820px){ .grid-3 { grid-template-columns:1fr; } }
+.grid-4 { display:grid; gap:var(--sp-5); grid-template-columns:repeat(4,1fr); }
+@media (max-width:1040px){ .grid-4 { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:480px) { .grid-4 { grid-template-columns:1fr; } }
 
 /* Card */
 .card {
