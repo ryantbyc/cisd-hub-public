@@ -32,9 +32,12 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import urlopen, Request
-from zoneinfo import ZoneInfo
-
-CENTRAL = ZoneInfo("America/Chicago")
+try:
+    from zoneinfo import ZoneInfo
+    CENTRAL = ZoneInfo("America/Chicago")
+except ImportError:
+    # Python < 3.9 fallback (Synology DSM ships Python 3.8)
+    CENTRAL = timezone(timedelta(hours=-5))  # CDT (UTC-5); CST would be -6
 
 # ---- source configuration -------------------------------------------------
 # Live domains. NOTE: meetings currently lives at cisd.boardmonitor.app; after
