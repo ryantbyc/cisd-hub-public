@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-11T22:16:59.257902+00:00",
-  "source_mode": "local",
+  "generated_at": "2026-06-15T01:00:02.770212+00:00",
+  "source_mode": "live",
   "sites": {
     "meetings": {
       "next": {
@@ -88,38 +88,30 @@
     "finance": {
       "metrics": [
         {
-          "label": "Budget Year Progress",
-          "value": "Month 8 of 12",
-          "fmt": "text",
-          "sub": "About 78% in, 56% spent",
-          "link": "https://cisd-finance.boardmonitor.app",
-          "context": true
+          "label": "Spend Tracked (6 yr)",
+          "value": 2374334476.36,
+          "fmt": "usd_compact"
         },
         {
-          "label": "Reserves",
-          "value": "~2.5 months",
-          "fmt": "text",
-          "sub": "Proj. ~$159M by Aug 31",
-          "link": "https://cisd-finance.boardmonitor.app"
+          "label": "Annual Budget",
+          "value": 761055862.0,
+          "fmt": "usd_compact",
+          "sub": "FY25-26"
         },
         {
-          "label": "Year-End Outlook",
-          "value": "Savings down ~$4.7M",
-          "fmt": "text",
-          "sub": "Smaller drawdown than budgeted $17.6M",
-          "link": "https://cisd-finance.boardmonitor.app"
+          "label": "Watchdog Flags",
+          "value": 702,
+          "fmt": "int",
+          "sub": "165 high severity"
         },
         {
-          "label": "2023 Bond Program",
-          "value": "$1.97B bond, 75% deployed",
-          "fmt": "text",
-          "sub": "$1.48B of $1.97B committed",
-          "link": "https://cisd-finance.boardmonitor.app"
+          "label": "Staff Departures",
+          "value": 624,
+          "fmt": "int",
+          "sub": "FY25-26 YTD · net -312"
         }
       ],
-      "report_month": "April 2026",
-      "report_pending": false,
-      "data_updated": "2026-06-11T17:24:15.001429+00:00",
+      "data_updated": "2026-06-13T22:08:55.668444+00:00",
       "url": "https://cisd-finance.boardmonitor.app"
     },
     "policy": {
@@ -198,12 +190,12 @@
         },
         {
           "label": "Open Positions",
-          "value": 242,
+          "value": 215,
           "fmt": "int",
           "sub": "Current"
         }
       ],
-      "data_updated": "2026-06-11T17:28:07Z",
+      "data_updated": "2026-06-14T19:00:02Z",
       "url": "https://cisd-staff.boardmonitor.app"
     }
   },
